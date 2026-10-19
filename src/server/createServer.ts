@@ -20,6 +20,8 @@ import { createSqliteDatabaseService } from "../composition/sqlite.js";
 import { registerSqliteTools } from "./registerSqliteTools.js";
 import { registerRecordedCrashTools } from "./registerRecordedCrashTools.js";
 import { createRecordedCrashService } from "../composition/binaryDiagnostics.js";
+import { createDesktopApplicationService } from "../composition/desktop.js";
+import { registerDesktopApplicationTool } from "./registerDesktopApplicationTool.js";
 import { createGoBinaryService } from "../composition/go.js";
 import type { GoBinaryService } from "../application/go/GoBinaryService.js";
 import { createElectronFuseService } from "../composition/electronFuses.js";
@@ -309,6 +311,7 @@ export const createServer = (
     options.webSourceLocation ?? createWebSourceLocationService(environment);
   const webModuleTrace =
     options.webModuleTrace ?? createWebModuleTraceService(environment);
+  const desktopApplication = createDesktopApplicationService();
   const goBinary = options.goBinary ?? createGoBinaryService();
   const rustBinary = options.rustBinary ?? createRustBinaryService();
   const peResources = createPeResourcesService();
@@ -392,6 +395,7 @@ export const createServer = (
       recordedCrash.close(),
       webSourceLocation.close(),
       webModuleTrace.close(),
+      desktopApplication.close(),
       goBinary.close(),
       rustBinary.close(),
       peResources.close(),
@@ -460,6 +464,14 @@ export const createServer = (
     electronFuses,
     webNetworkCapture,
   };
+  registerDesktopApplicationTool(
+    server,
+    desktopApplication,
+    toolLogger,
+    recordEvidence,
+    analysisAdmission,
+    evidenceById,
+  );
   registerBinaryAnalysisTools(toolContext);
   registerReverseEngineeringTools(
     server,
